@@ -1,6 +1,6 @@
 <?php
 
-namespace Weebill\Container;
+namespace Weebel\Container;
 
 use Psr\Container\NotFoundExceptionInterface;
 

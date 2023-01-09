@@ -1,15 +1,15 @@
 {
-  "name": "weebill/container",
+  "name": "weebel/container",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "autoload": {
     "psr-4": {
-      "Weebill\\Container\\": "src/"
+      "Weebel\\Container\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Weebill\\Container\\Tests\\": "tests/"
+      "Weebel\\Container\\Tests\\": "tests/"
     }
   },
   "require-dev": {
@@ -20,6 +20,7 @@
     "mockery/mockery": "^1.5"
   },
   "require": {
-    "psr/container": "^2.0"
+    "psr/container": "^2.0",
+    "weebel/contracts": "dev-master"
   }
 }
