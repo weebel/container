@@ -1,0 +1,25 @@
+{
+  "name": "weebill/container",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "Weebill\\Container\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Weebill\\Container\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "symfony/var-dumper": "^6.0",
+    "phpunit/phpunit": "^9.5",
+    "friendsofphp/php-cs-fixer": "^3.13",
+    "mockery/mockery": "^1.5"
+  },
+  "require": {
+    "psr/container": "^2.0"
+  }
+}
