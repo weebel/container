@@ -11,6 +11,7 @@ class Container implements ContainerInterface, Caller
     protected array $registered = [];
     protected array $resolved = [];
     protected array $arguments = [];
+    protected array $aliases = [];
 
     protected function __construct()
     {
@@ -21,6 +22,10 @@ class Container implements ContainerInterface, Caller
      */
     public function get(string $id): mixed
     {
+        if (array_key_exists($id, $this->aliases)) {
+            return $this->get($this->aliases[$id]);
+        }
+
         if (array_key_exists($id, $this->resolved)) {
             return $this->resolved[$id];
         }
@@ -223,5 +228,12 @@ class Container implements ContainerInterface, Caller
         } catch (\Throwable $e) {
             throw new EntityNotFound("Unable to resolve the id of : $id. " . $e->getMessage());
         }
+    }
+
+    public function alias(string $id, string $value): static
+    {
+        $this->aliases[$id] = $value;
+
+        return $this;
     }
 }

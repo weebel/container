@@ -139,6 +139,21 @@ class ContainerTest extends TestCase
         $this->assertEquals('default', $mock3->mockClass->property);
     }
 
+    public function testIfATagIsAnAliasForAnotherTagThenTheirResolvedHashCodeShouldBeTheSame():void
+    {
+        $container = Container::getInstance();
+
+        $container->set('mock_class_new', MockClass::class);
+        $container->addArgument('mock_class_new', 'property', 'new');
+
+        $container->alias("another_mock", 'mock_class_new');
+
+        $mock1 = $container->get('mock_class_new');
+        $mock2 = $container->get('another_mock');
+
+        $this->assertEquals(spl_object_id($mock1), spl_object_id($mock2));
+    }
+
 }
 
 class MockClass
