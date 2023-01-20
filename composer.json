@@ -24,5 +24,8 @@
   "require": {
     "psr/container": "^2.0",
     "weebel/contracts": "dev-master"
+  },
+  "scripts": {
+    "test": "phpunit"
   }
 }
