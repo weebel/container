@@ -155,6 +155,7 @@ class ContainerTest extends TestCase
     {
         {
             $container = ServiceContainer::getInstance();
+            $container->flush();
 
             $container->addArgument(
                 MockClassUser::class,
