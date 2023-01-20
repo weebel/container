@@ -8,7 +8,7 @@ class ContainerTest extends TestCase
 {
     public function testSetInstanceToAConcrete(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $instance = new MockClass();
 
@@ -19,7 +19,7 @@ class ContainerTest extends TestCase
 
     public function testSetInstanceByClassNameToAConcrete(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class', MockClass::class);
 
@@ -28,41 +28,40 @@ class ContainerTest extends TestCase
 
     public function testSetArrayToAKey(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $array = [1, 2, 5];
 
         $container->set('key', $array);
 
         $this->assertEquals($array, $container->get('key'));
-
     }
 
     public function testSetInstanceToAConcreteWithCallable(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $instance = new MockClass();
 
-        $container->set('mock_class', fn() => $instance);
+        $container->set('mock_class', fn () => $instance);
 
         $this->assertEquals($instance, $container->get('mock_class'));
     }
 
     public function testEntityNotFoundWouldBeThrownInCaseTheEntityIsNotFound(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->flush();
 
-        $this->expectException(EntityNotFound::class);
+        $this->expectException(ServiceNotFound::class);
 
         $container->get('mock_class');
     }
 
     public function testCanHandleDifferentTagsForASingleClass(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class_default', MockClass::class);
 
@@ -74,12 +73,11 @@ class ContainerTest extends TestCase
 
         $this->assertEquals('default', $mock->property);
         $this->assertEquals('new', $newMock->property);
-
     }
 
     public function testCanAssignDifferentTagsOnTopOfAnotherTags(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class_default', MockClass::class);
 
@@ -88,7 +86,6 @@ class ContainerTest extends TestCase
 
         $container->set('mock_class_another_one', 'mock_class_new');
         $container->addArgument('mock_class_another_one', 'number', 2);
-
 
 
         $mock = $container->get('mock_class_default');
@@ -103,9 +100,9 @@ class ContainerTest extends TestCase
         $this->assertEquals('new', $anotherMock->property);
     }
 
-    public function testHashCodeOfTheResolvedObjectOfATagIsAlwaysTheSame():void
+    public function testHashCodeOfTheResolvedObjectOfATagIsAlwaysTheSame(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class_default', MockClass::class);
 
@@ -122,7 +119,7 @@ class ContainerTest extends TestCase
 
     public function testOtherTagsCanBeBoundToAServiceAsAnArgument(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class_new', MockClass::class);
         $container->addArgument('mock_class_new', 'property', 'new');
@@ -139,9 +136,9 @@ class ContainerTest extends TestCase
         $this->assertEquals('default', $mock3->mockClass->property);
     }
 
-    public function testIfATagIsAnAliasForAnotherTagThenTheirResolvedHashCodeShouldBeTheSame():void
+    public function testIfATagIsAnAliasForAnotherTagThenTheirResolvedHashCodeShouldBeTheSame(): void
     {
-        $container = Container::getInstance();
+        $container = ServiceContainer::getInstance();
 
         $container->set('mock_class_new', MockClass::class);
         $container->addArgument('mock_class_new', 'property', 'new');
@@ -154,11 +151,27 @@ class ContainerTest extends TestCase
         $this->assertEquals(spl_object_id($mock1), spl_object_id($mock2));
     }
 
+    public function testCanAddCallableAsArgument(): void
+    {
+        {
+            $container = ServiceContainer::getInstance();
+
+            $container->addArgument(
+                MockClassUser::class,
+                'mockClass',
+                fn () => new MockClass('something', 34)
+            );
+
+            $mockClassUser = $container->get(MockClassUser::class);
+            $this->assertInstanceOf(MockClassUser::class, $mockClassUser);
+            $this->assertEquals('something', $mockClassUser->mockClass->property);
+            $this->assertEquals(34, $mockClassUser->mockClass->number);
+        }
+    }
 }
 
 class MockClass
 {
-
     public function __construct(public string $property = 'default', public int $number = 1)
     {
     }

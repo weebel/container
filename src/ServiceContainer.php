@@ -5,9 +5,9 @@ namespace Weebel\Container;
 use Weebel\Contracts\Caller;
 use Weebel\Contracts\Container as ContainerInterface;
 
-class Container implements ContainerInterface, Caller
+class ServiceContainer implements ContainerInterface, Caller
 {
-    private static ?Container $instance = null;
+    private static ?ServiceContainer $instance = null;
     protected array $registered = [];
     protected array $resolved = [];
     protected array $arguments = [];
@@ -18,7 +18,7 @@ class Container implements ContainerInterface, Caller
     }
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      */
     public function get(string $id): mixed
     {
@@ -37,7 +37,7 @@ class Container implements ContainerInterface, Caller
 
     /**
      * @throws ContainerException
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      */
     public function make(string $class, array $arguments): mixed
     {
@@ -64,7 +64,7 @@ class Container implements ContainerInterface, Caller
         return $this->registered;
     }
 
-    public function addArgument(string $tag, string $key, string $value): static
+    public function addArgument(string $tag, string $key, mixed $value): static
     {
         $this->arguments[$tag][$key] = $value;
 
@@ -87,7 +87,7 @@ class Container implements ContainerInterface, Caller
     }
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      * @throws ContainerException
      */
     public function call(string $class, string $method, array $arguments = []): mixed
@@ -135,11 +135,7 @@ class Container implements ContainerInterface, Caller
     private function resolveParameter(\ReflectionParameter $parameter, array $arguments = []): mixed
     {
         if ($arguments && array_key_exists($parameter->getName(), $arguments)) {
-            $argument = $arguments[$parameter->getName()];
-            if ($argument[0] === '@') {
-                return $this->get(substr($argument, 1));
-            }
-            return $argument;
+            return $this->resolveFromArguments($arguments, $parameter->getName());
         }
 
         if ($this->has($parameter->getName())) {
@@ -148,14 +144,7 @@ class Container implements ContainerInterface, Caller
 
         $class = $parameter->getType()?->getName();
         if ($class && !in_array($class, ["bool", "string", "array", "mixed", "int", "object", "callable"])) {
-            try {
-                return $this->get($class);
-            } catch (EntityNotFound $exception) {
-                if ($parameter->isDefaultValueAvailable()) {
-                    return $parameter->getDefaultValue();
-                }
-                throw $exception;
-            }
+            return $this->get($class);
         }
 
         if ($parameter->isDefaultValueAvailable()) {
@@ -167,7 +156,7 @@ class Container implements ContainerInterface, Caller
 
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      */
     private function inputParameters(?array $parameters, array $arguments = []): array
     {
@@ -184,7 +173,7 @@ class Container implements ContainerInterface, Caller
 
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      * @throws \ReflectionException
      */
     private function resolveFromCallable(callable $callable, array $arguments = [])
@@ -194,24 +183,26 @@ class Container implements ContainerInterface, Caller
 
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      * @throws \ReflectionException
      */
     private function resolveFromRegistered(string $id, array $arguments = []): mixed
     {
-        if (is_callable($this->registered[$id])) {
-            return $this->resolveFromCallable($this->registered[$id], $arguments);
+        $registered = $this->registered[$id];
+
+        if (is_callable($registered)) {
+            return $this->resolveFromCallable($registered, $arguments);
         }
 
-        if (!is_string($this->registered[$id])) {
-            return $this->registered[$id];
+        if (!is_string($registered)) {
+            return $registered;
         }
 
-        return $this->resolve($this->registered[$id], $arguments);
+        return $this->resolve($registered, $arguments);
     }
 
     /**
-     * @throws EntityNotFound
+     * @throws ServiceNotFound
      */
     private function resolve(string $id, array $arguments = []): mixed
     {
@@ -226,7 +217,7 @@ class Container implements ContainerInterface, Caller
 
             return $this->make($id, $arguments);
         } catch (\Throwable $e) {
-            throw new EntityNotFound("Unable to resolve the id of : $id. " . $e->getMessage());
+            throw new ServiceNotFound("Unable to resolve the id of : $id. " . $e->getMessage());
         }
     }
 
@@ -235,5 +226,22 @@ class Container implements ContainerInterface, Caller
         $this->aliases[$id] = $value;
 
         return $this;
+    }
+
+    /**
+     * @throws ServiceNotFound
+     */
+    private function resolveFromArguments($arguments, $parameter): mixed
+    {
+        $argument = $arguments[$parameter];
+        if (is_string($argument) && $argument[0] === '@') {
+            return $this->get(substr($argument, 1));
+        }
+
+        if (is_callable($argument)) {
+            return $this->resolveFromCallable($argument);
+        }
+
+        return $argument;
     }
 }

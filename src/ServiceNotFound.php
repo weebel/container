@@ -4,6 +4,6 @@ namespace Weebel\Container;
 
 use Psr\Container\NotFoundExceptionInterface;
 
-class EntityNotFound extends \Exception implements NotFoundExceptionInterface
+class ServiceNotFound extends \Exception implements NotFoundExceptionInterface
 {
 }
