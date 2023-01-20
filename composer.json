@@ -1,5 +1,7 @@
 {
   "name": "weebel/container",
+  "description": "A simple and minimal but yet powerful container",
+  "license": ["MIT"],
   "minimum-stability": "dev",
   "prefer-stable": true,
   "autoload": {
